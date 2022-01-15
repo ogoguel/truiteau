@@ -1,0 +1,18 @@
+{
+    "transparency16": {
+        "data": "hwQQABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "tilemapTile": true
+    },
+    "tile1": {
+        "data": "hwQQABAAAAAAAABoeIiIiAAAAIhoaGaIAAAAiIiIZoiAiIiIiHeIiIB3hoiIdmdmAGh3d2dmhogAgIh2d3d3ZgAAgIhohohoAICIdnd3ZmYAiHd3ZmZmZoh3d4Zod4eIiIiIiHdniIgAAABoZ4hmZgAAAHiGeGdmAAAAiIh3iIgAAAAAgIgAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "tilemapTile": true,
+        "displayName": "swampTile2"
+    },
+    "*": {
+        "mimeType": "image/x-mkcd-f4",
+        "dataEncoding": "base64",
+        "namespace": "myTiles"
+    }
+}
