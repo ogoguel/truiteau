@@ -1,7 +1,9 @@
-enum GameState {
+ enum GameState {
     SPLASH,
     TITLE,
     WAITING,
+    PRESENTATION,
+    READY,
     PLAYING,
     GAMEOVER,
     WINNER
@@ -19,6 +21,7 @@ class GameController {
     protected statusBar: StatusBar
     protected random: Random
     protected noiseGenerator: any
+    protected gameSeed : number
     protected fx: FX
     public static instance: GameController
 
@@ -30,6 +33,7 @@ class GameController {
         this.title = sprites.create(projectImages.Truiteau_Cover_128, SpriteKind.Food);
         this.random = new Random(Math.random())
         this.noiseGenerator = this.random.makeNoise2D()
+        this.gameSeed = Math.random()
     }
 
     public launchGame() {
@@ -62,7 +66,7 @@ class GameController {
             return;
         }
         this.state = _state;
-
+        console.log("SetState:"+_state)
         switch (_state) {
             case GameState.TITLE:
                 this.title.setFlag(SpriteFlag.Invisible, false);
@@ -70,26 +74,37 @@ class GameController {
                 this.obstacles.showObstacles(false)
                 this.camera.defaultCamera();
                 this.player.showPlayer(false);
+                this.statusBar.show(false)
                 break
             case GameState.WAITING:
                 this.title.setFlag(SpriteFlag.Invisible, true);
                 this.terrain.showTerrain(true)
-                // always generate same obstacle ... or not ?
-                // this.random.setSeed(2)
-                this.random.setSeed(Math.random())
+                // always generate same gameplay 
+                this.random.setSeed(this.gameSeed)
                 this.obstacles.addObstacles(4); // difficulty 
-                this.obstacles.showObstacles(true)
+                this.obstacles.showObstacles(false)
                 this.obstacles.move(false)
                 this.enemies.addEnemies(4)
-                this.enemies.showEnemies(true)
+                this.enemies.showEnemies(false)
+                this.camera.topGamePosition()
+                this.statusBar.show(false)
+                this.player.showPlayer(false);
+                break
+            case GameState.PRESENTATION:   
+                this.camera.setMovingSpeed(-1,-0.1)
+                this.statusBar.show(true)
+                break
+            case GameState.READY:
                 this.camera.defaultGamePosition();
+                this.camera.setMovingSpeed(0, 0)
                 this.player.resetPosition();
                 this.player.showPlayer(true);
-                this.statusBar.show(false)
+                this.obstacles.showObstacles(true)
+                this.enemies.showEnemies(true)
                 break
             case GameState.PLAYING:
                 this.player.startGame();
-                this.camera.setMovingSpeed(1);
+                this.camera.setMovingSpeed(1,0);
                 this.obstacles.move(true)
                 this.weather.setWeather(WeatherFX.CURRENT);
                 this.statusBar.show(true)
@@ -97,7 +112,7 @@ class GameController {
             case GameState.GAMEOVER:
             case GameState.WINNER:
                 this.player.endGame(_state == GameState.WINNER);
-                this.camera.setMovingSpeed(0);
+                this.camera.setMovingSpeed(0,0);
                 this.obstacles.move(false)
                 this.weather.setWeather(WeatherFX.NONE);
                 break
@@ -105,11 +120,18 @@ class GameController {
     }
 
     protected nextState() {
+        console.log(this.state)
         switch (this.state) {
             case GameState.TITLE:
                 this.setState(GameState.WAITING);
                 break;
             case GameState.WAITING:
+                this.setState(GameState.PRESENTATION);
+                break;
+            case GameState.PRESENTATION:
+                this.setState(GameState.READY);
+                break;
+            case GameState.READY:
                 this.setState(GameState.PLAYING);
                 break;
             case GameState.PLAYING:
@@ -124,6 +146,11 @@ class GameController {
     public mainLoop() {
         // must be first
         this.camera.update();
+
+        if (this.state == GameState.PRESENTATION && this.camera.getCameraTargetLine()==this.getStartPosition())
+        {
+            this.nextState()
+        }
 
         this.terrain.update();
         this.player.update();
@@ -163,7 +190,7 @@ class GameController {
         return this.terrain.isOnRiver(_sprite)
     }
 
-    public getOverlappingObstacle(_player: Sprite): Sprite {
+    public getOverlappingObstacle(_player: Sprite): Obstacle {
         return this.obstacles.getOverlappingObstacle(_player)
     }
 

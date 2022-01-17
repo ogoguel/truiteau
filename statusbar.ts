@@ -21,6 +21,7 @@ class StatusBar {
         this.percentage = -1
         this.distance = -1
         this.margin = 2
+        this.setValue(1)
     }
 
     public show(_show: boolean) {

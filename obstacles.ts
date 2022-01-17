@@ -1,23 +1,55 @@
+enum ObstacleType {
+    LOG,
+    BONUS
+}
 class Obstacle {
     public sprite: Sprite
     public trail: Trail
     public centerRatio: number
+    public obstacleType: ObstacleType
 }
 
 class Obstacles {
     protected obstacleImgs: Image[]
+    protected obstacleTypes: ObstacleType[]
+    protected obstacleProba: number[]
     protected obstacles: Obstacle[]
     protected isMoving: boolean
     protected moveCount: number
+    protected distribution : number[]
 
     constructor() {
         this.obstacleImgs = [
             assets.image`log`,
             assets.image`log1`,
+            assets.image`marismall0`,
+            assets.image`canadared0`
+        ]
+        this.obstacleTypes = [
+            ObstacleType.LOG,
+            ObstacleType.LOG,
+            ObstacleType.BONUS,
+            ObstacleType.BONUS,
+        ]
+        this.obstacleProba = [
+            1,
+            1,
+            0.05,
+            0.05
         ]
         this.isMoving = false
         this.obstacles = []
         this.moveCount = 0
+
+        this.distribution = []
+        let max = 100
+        let idx = 0
+        for (let i = 0; i < this.obstacleProba.length;i++) {
+            let nb = this.obstacleProba[i] * max
+            for(let j=0;j<nb;j++) {
+                this.distribution[idx++]= i;
+            }
+        }
     }
 
     // density per screen
@@ -28,7 +60,6 @@ class Obstacles {
             if (o.trail != null) {
                 GameController.instance.removeFX(o.trail)
             }
-
         }
         this.obstacles = []
 
@@ -36,10 +67,11 @@ class Obstacles {
         let nbObstacles = _density * height / screen.height
 
         for (let t = 0; t < nbObstacles; t++) {
-            let obstacleImg = this.obstacleImgs[Math.floor(Math.random() * this.obstacleImgs.length)]
+            let idx = this.distribution[Math.floor(GameController.instance.nextRandom() * this.distribution.length)]
+            let obstacleImg = this.obstacleImgs[idx]
             let obstacle = sprites.create(obstacleImg, SpriteKind.Enemy);
-            // pas d'obstacle sur le 1er ecran
-            let y = Math.floor(GameController.instance.nextRandom() * (height - screen.height * 1.2));
+            // pas d'obstacle sur le 1er ecran ni le dernier
+            let y = screen.height+Math.floor(GameController.instance.nextRandom() * (height - screen.height *2));
 
             let b = GameController.instance.getBorders(y)
             let x = (b[1] - b[0] - 10) * GameController.instance.nextRandom()
@@ -48,10 +80,13 @@ class Obstacles {
 
                 let obj = new Obstacle()
                 obj.sprite = obstacle
+                obj.obstacleType = this.obstacleTypes[idx] 
                 obj.trail = null
                 obj.centerRatio = x / (b[1] - b[0])
                 this.obstacles.push(obj)
             }
+
+         //   y += (GameController.instance.nextRandom() + 1) * 10 + 10
         }
     }
 
@@ -65,7 +100,7 @@ class Obstacles {
         }
     }
 
-    public getOverlappingObstacle(_player: Sprite): Sprite {
+    public getOverlappingObstacle(_player: Sprite): Obstacle {
         for (let o of this.obstacles) {
             if (!GameController.instance.isOnScreen(o.sprite)) {
                 continue
@@ -75,7 +110,12 @@ class Obstacles {
             }
             if (o.sprite.overlapsWith(_player)) {
                 o.sprite.setKind(SpriteKind.Food)
-                return o.sprite
+                if (o.obstacleType == ObstacleType.BONUS) {
+                    o.sprite.setFlag(SpriteFlag.Invisible,true)
+                }else {
+                    o.sprite.setKind(SpriteKind.Food)
+                }
+                return o
             }
         }
         return null
@@ -113,12 +153,18 @@ class Obstacles {
                 }
                 continue
             }
-            if (o.trail == null) {
+            if (o.trail == null && o.obstacleType == ObstacleType.LOG) {
                 o.trail = new Trail(null, o.sprite, 4, 0, -10, 0.5, 0.5, 1)
                 GameController.instance.addFX(o.trail)
             }
 
-            let y = o.sprite.y + (noiseGenerator(idx, this.moveCount / 120) + 1) * 2
+            let y = o.sprite.y
+            if (o.obstacleType == ObstacleType.LOG) {
+                y +=  (noiseGenerator(idx, this.moveCount / 120) + 1) * 2
+            }
+            else {
+                y += 1
+            }
             let b = GameController.instance.getBorders(Math.floor(y))
             let x = (b[1] - b[0]) * o.centerRatio + b[0]// + noiseGenerator(idx, this.moveCount / 120) * 2
 
@@ -128,7 +174,21 @@ class Obstacles {
             else if (x > b[1]) {
                 x = b[1]
             }
-            o.sprite.setPosition(x, y)
+
+            let canMove = true
+            for(let other of this.obstacles) {
+                if (other == o || !GameController.instance.isOnScreen(other.sprite) || other.obstacleType == ObstacleType.BONUS) {
+                    continue
+                }
+                if (other.sprite.overlapsWith(o.sprite) && other.sprite.y < o.sprite.y) {
+                    canMove = false
+                }
+            }
+
+            if (canMove) {
+                o.sprite.setPosition(x, y)
+            }
+       
         }
     }
 }

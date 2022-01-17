@@ -1,4 +1,4 @@
-
+ 
 class Terrain {
 
     // Top = 0
@@ -19,6 +19,8 @@ class Terrain {
     protected right: number[]
     protected trees: Sprite[]
     protected treeImgs: Image[]
+    protected fishAnimations: Image[][]
+    protected fishes: Sprite[]
 
     constructor() {
         this.treeImgs = [
@@ -26,6 +28,10 @@ class Terrain {
             assets.image`forestTree1`,
             assets.image`forestTree2`,
             assets.image`logTree`,
+        ]
+        this.fishAnimations = [
+            assets.animation`fishLeft`,
+            assets.animation`fishRight`,
         ]
     }
 
@@ -98,6 +104,10 @@ class Terrain {
         for (let t of this.trees) {
             t.setFlag(SpriteFlag.Invisible, !_show)
         }
+
+        for(let f of this.fishes) {
+            f.setFlag(SpriteFlag.Invisible, !_show)
+        }
         // Use transparent for water
         scene.setBackgroundColor(_show ? 8 : 0);
     }
@@ -113,14 +123,31 @@ class Terrain {
         let width = this.backgroundImg.width
         let height = this.backgroundImg.height
 
-        let leftCenter = screen.width / 4
-        let rightCenter = screen.width * 3 / 4
+        let leftCenter = screen.width / 2
+        let rightCenter = screen.width / 2
+
+        let deltaCenter = 0
+        let deltaWidth = 0
+        
+        let lPerlin = 0
+        while (noiseGenerator(lPerlin,0)<0.8) {
+            lPerlin +=0.01
+        }
+        let rPerlin = lPerlin+0.1
+        while (noiseGenerator(rPerlin,0) < 0.8) {
+            rPerlin += 0.01
+        }
+
+        console.log(rPerlin+" "+lPerlin)
 
         for (let y = 0; y < height; y++) {
 
+            deltaCenter = (screen.width / 3 * y/height)+10
+            deltaWidth = screen.width / 4
+        
             let perlinY = y / (screen.height);
-            let leftX = leftCenter + (noiseGenerator(0, perlinY)) * width / 4
-            let rightX = rightCenter + (noiseGenerator(0.2, perlinY)) * width / 4;
+            let leftX = leftCenter - deltaCenter + (noiseGenerator(lPerlin, perlinY)) * deltaWidth
+            let rightX = rightCenter + deltaCenter + (noiseGenerator(rPerlin, perlinY)) * deltaWidth;
 
             if (leftX < 0)
                 leftCenter++;
@@ -142,6 +169,18 @@ class Terrain {
         this.backgroundSprite.z = -10000;
         // move to the bottom (position is relative to its center)
         this.backgroundSprite.y = height - height / 2;
+
+        this.fishes = []
+        for(let f=0;f<10;f++) {
+            let img = this.fishAnimations[Math.floor(Math.random()*this.fishAnimations.length)]
+            let s = sprites.create(img[0],SpriteKind.Food)
+            animation.runImageAnimation(s, img,250,true)
+            let y = Math.randomRange(0,screen.height/2)
+            s.y = y
+            s.x = this.left[y]+4+Math.randomRange(0,this.right[y]-this.left[s.y]-s.width)
+            this.fishes[f]=s
+        }  
+        
     }
 
     public update() {

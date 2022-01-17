@@ -16,6 +16,11 @@ enum PlayerState {
     WON
 }
 
+const BONUS_ENERGY = 0.05
+const PENALTY_OBSTACLE = 0.2
+const PENALTY_BORDER = 0.02 // per pixel
+const ENEMY_CAUGHT_RATIO =0.5 
+
 class Player {
     protected sprite: Sprite
     protected jumpingSprite: Sprite
@@ -73,7 +78,7 @@ class Player {
                     music.smallCrash.play()
                 }
                 else {
-                    music.zapped.play()
+                  //  music.zapped.play()
                     this.jumpingFrame = jumpingFish.length * 2;
                 }
                 this.sprite.vx = 0
@@ -101,6 +106,7 @@ class Player {
     }
 
     public endGame(_hasWon: boolean) {
+        this.jumpingSprite.setFlag(SpriteFlag.Invisible,true)
         if (_hasWon) {
             this.setState(PlayerState.WON);
             music.powerUp.play()
@@ -127,8 +133,17 @@ class Player {
         this.setState(PlayerState.JUMPING);
     }
 
+    addEnergy(_amount:number) {
+        this.energy += _amount
+        if (this.energy>1) {
+            this.energy = 1
+        }
+        music.powerUp.play()
+        GameController.instance.setStatusBar(this.energy)
+    }
     removeEnergy(_amount: number, _potentialDeath: DeathEnum): boolean {
         this.energy -= _amount
+        GameController.instance.setStatusBar(this.energy)
         if (this.energy < 0) {
             this.death = _potentialDeath
             GameController.instance.gameOver()
@@ -143,23 +158,30 @@ class Player {
         // collision with the borders
         let diff = GameController.instance.isOnRiver(this.sprite)
         this.sprite.x -= diff
-        if (this.removeEnergy(Math.abs(diff) / 50, DeathEnum.BORDER)) {
+        if (this.removeEnergy(Math.abs(diff) * PENALTY_BORDER, DeathEnum.BORDER)) {
             return
         }
 
         // obstacles
         let obstacle = GameController.instance.getOverlappingObstacle(this.sprite)
         if (obstacle) {
-            if (this.removeEnergy(0.2, DeathEnum.OBSTACLE)) {
-                return
+            if (obstacle.obstacleType == ObstacleType.LOG)
+            {
+                if (this.removeEnergy(PENALTY_OBSTACLE, DeathEnum.OBSTACLE)) {
+                    return
+                }
+                this.setState(PlayerState.EVADING)
             }
-            this.setState(PlayerState.EVADING)
+            else
+            {
+                this.addEnergy(BONUS_ENERGY)
+            }
         }
 
         // enemies
         let enemy = GameController.instance.getOverlappingEnemy(this.sprite)
         if (enemy) {
-            let caught = Math.random() < 0.5
+            let caught = Math.random() < ENEMY_CAUGHT_RATIO
             if (caught) {
                 this.death = DeathEnum.ENEMY
                 this.sprite.setPosition(enemy.x, enemy.y)
@@ -234,16 +256,9 @@ class Player {
             this.removeEnergy(0.1, DeathEnum.OFFSCREEN)
         }
 
-        let cameraTop = GameController.instance.getCameraTargetLine() - screen.height / 2
-        if (cameraTop < 0) {
+        if (this.sprite.y < screen.height/2) {
             GameController.instance.win()
-        }
-
-        GameController.instance.setStatusBar(this.energy)
-        let height = GameController.instance.getTerrainDimension()[1]
-        let total = GameController.instance.getStartPosition()
-        let distance = (total - cameraTop) / total
-        GameController.instance.setProgressBar(distance)
+        }     
     }
 
 }

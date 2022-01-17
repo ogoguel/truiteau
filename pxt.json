@@ -32,7 +32,8 @@
         "trail.ts",
         "jumpingFish.ts",
         "guard.tx.ts",
-        "enemies.ts"
+        "enemies.ts",
+        "bear.ts"
     ],
     "testFiles": [
         "test.ts"
