@@ -23,6 +23,7 @@ class GameController {
     protected noiseGenerator: any
     protected gameSeed : number
     protected fx: FX
+    
     public static instance: GameController
 
     public constructor() {
@@ -85,13 +86,15 @@ class GameController {
                 this.obstacles.showObstacles(false)
                 this.obstacles.move(false)
                 this.enemies.addEnemies(4)
-                this.enemies.showEnemies(false)
                 this.camera.topGamePosition()
                 this.statusBar.show(false)
                 this.player.showPlayer(false);
+                this.weather.setWeather(WeatherFX.NONE);
+                this.enemies.showEnemies(false)
                 break
             case GameState.PRESENTATION:   
                 this.camera.setMovingSpeed(-1,-0.1)
+                this.statusBar.setValue(1)
                 this.statusBar.show(true)
                 break
             case GameState.READY:
@@ -101,20 +104,21 @@ class GameController {
                 this.player.showPlayer(true);
                 this.obstacles.showObstacles(true)
                 this.enemies.showEnemies(true)
+                this.enemies.move(false)
+                this.obstacles.move(false)
+                this.weather.setWeather(WeatherFX.CURRENT);
                 break
             case GameState.PLAYING:
                 this.player.startGame();
                 this.camera.setMovingSpeed(1,0);
                 this.obstacles.move(true)
-                this.weather.setWeather(WeatherFX.CURRENT);
-                this.statusBar.show(true)
+                this.enemies.move(true)
                 break
             case GameState.GAMEOVER:
             case GameState.WINNER:
                 this.player.endGame(_state == GameState.WINNER);
                 this.camera.setMovingSpeed(0,0);
-                this.obstacles.move(false)
-                this.weather.setWeather(WeatherFX.NONE);
+                this.enemies.move(false)
                 break
         }
     }
@@ -156,6 +160,7 @@ class GameController {
         this.player.update();
         this.weather.update();
         this.obstacles.update();
+        this.enemies.update();
         this.statusBar.update();
         this.fx.update();
     }
@@ -194,7 +199,7 @@ class GameController {
         return this.obstacles.getOverlappingObstacle(_player)
     }
 
-    public getOverlappingEnemy(_player: Sprite): Sprite {
+    public getOverlappingEnemy(_player: Sprite): Enemy {
         return this.enemies.getOverlappingEnemy(_player)
     }
 
@@ -204,6 +209,14 @@ class GameController {
 
     public setProgressBar(_percentage: number) {
         this.statusBar.setDistance(_percentage);
+    }
+
+    public getPlayerPosition(): number[] {
+        return this.player.getPlayerPosition()
+    }
+
+    public getKiller(): Enemy {
+        return this.player.getKiller()
     }
 
     public gameOver() {

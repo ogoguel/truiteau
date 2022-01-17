@@ -71,8 +71,20 @@ class Obstacles {
             let obstacleImg = this.obstacleImgs[idx]
             let obstacle = sprites.create(obstacleImg, SpriteKind.Enemy);
             // pas d'obstacle sur le 1er ecran ni le dernier
-            let y = screen.height+Math.floor(GameController.instance.nextRandom() * (height - screen.height *2));
+            let y 
 
+            // check that there no obstacles on the same line
+            let check
+            do {
+                y = screen.height + Math.floor(GameController.instance.nextRandom() * (height - screen.height * 2));
+                check = false
+                for(let other of this.obstacles) {
+                    if (other.sprite.y >= (y - obstacleImg.height) && other.sprite.y < (y+obstacleImg.height)) {
+                        check = true
+                    }
+                }
+            } while(check)
+          
             let b = GameController.instance.getBorders(y)
             let x = (b[1] - b[0] - 10) * GameController.instance.nextRandom()
             if (x > 0) {
@@ -86,7 +98,6 @@ class Obstacles {
                 this.obstacles.push(obj)
             }
 
-         //   y += (GameController.instance.nextRandom() + 1) * 10 + 10
         }
     }
 
@@ -154,7 +165,7 @@ class Obstacles {
                 continue
             }
             if (o.trail == null && o.obstacleType == ObstacleType.LOG) {
-                o.trail = new Trail(null, o.sprite, 4, 0, -10, 0.5, 0.5, 1)
+                o.trail = new Trail(null, o.sprite, 4, 0, -10, o.sprite.width/2, 0.5, 0.5, 1)
                 GameController.instance.addFX(o.trail)
             }
 

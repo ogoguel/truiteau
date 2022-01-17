@@ -177,7 +177,7 @@ class Terrain {
             animation.runImageAnimation(s, img,250,true)
             let y = Math.randomRange(0,screen.height/2)
             s.y = y
-            s.x = this.left[y]+4+Math.randomRange(0,this.right[y]-this.left[s.y]-s.width)
+            s.x = this.left[y]+s.width/2+Math.randomRange(0,this.right[y]-this.left[s.y]-s.width)
             this.fishes[f]=s
         }  
         

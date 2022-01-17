@@ -7,6 +7,7 @@ class Trail extends FXBase {
     source: Sprite
     startX: number
     startY: number
+    sizeX : number
     max: number
     radius: number
     speed: number
@@ -20,7 +21,7 @@ class Trail extends FXBase {
     duration: number
     color: number
 
-    constructor(_parent: FXBase, _source: Sprite, _max: number, _startX: number, _startY: number, _duration: number, _speed: number, _color: number) {
+    constructor(_parent: FXBase, _source: Sprite, _max: number, _startX: number, _startY: number, _sizeX:number, _duration: number, _speed: number, _color: number) {
         super()
         super.init(_parent, 0, 0)
         this.startX = _startX
@@ -30,6 +31,7 @@ class Trail extends FXBase {
         this.source = _source
         this.sourceDeltaX = 0
         this.sourceDeltaY = 0
+        this.sizeX = _sizeX
         this.lastX = _source.x
         this.lastY = _source.y
         this.duration = _duration
@@ -51,7 +53,7 @@ class Trail extends FXBase {
     }
 
     addElement() {
-        let element = new Water(this, this.source.x, this.source.y + this.startY,
+        let element = new Water(this, this.source.x + (Math.random()-0.5)*this.sizeX, this.source.y + this.startY,
             7, // radius
             30, 150, //2, 160, // min/max angle
             this.speed, // speed

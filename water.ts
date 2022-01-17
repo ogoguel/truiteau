@@ -53,8 +53,14 @@ class Water extends FXBase {
             let angle = i / this.nb * (this.maxAngle - this.minAngle) + this.minAngle
             let rad = angle / 360 * 2 * Math.PI
             let x = this.centerX + this.currentRadius * Math.cos(rad)
-            let y = this.centerY + this.currentRadius * Math.sin(rad) - scene.cameraTop()
-            screen.setPixel(x, y, this.color);
+            let y = this.centerY + this.currentRadius * Math.sin(rad)
+
+            let b = GameController.instance.getBorders(y)
+            if (x<b[0] || x > b[1]) {
+                continue
+            }
+
+            screen.setPixel(x, y - scene.cameraTop(), this.color);
         }
     }
 }
