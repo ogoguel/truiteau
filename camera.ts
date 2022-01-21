@@ -3,6 +3,7 @@ class Camera {
     protected x: number
     protected speedY: number
     protected accelerationY: number
+    protected presenting : boolean
  
     constructor() {
         this.defaultCamera()
@@ -13,18 +14,21 @@ class Camera {
         this.y = screen.height / 2
         this.speedY = 0;
         this.accelerationY = 0
+        this.presenting = false
     }
 
     public defaultGamePosition() {
         this.y = GameController.instance.getStartPosition();
         this.x = screen.width / 2
         this.speedY = 0;
+        this.presenting = false
     }
 
     public topGamePosition() {
         this.y = screen.height / 2
         this.x = screen.width / 2
         this.speedY = 0;
+        this.presenting = false
     }
 
     public getCameraTargetLine(): number {
@@ -47,6 +51,10 @@ class Camera {
         this.speedY = _speed
         this.accelerationY = _acceleration
     }
+    public startPresentation() {
+     this.setMovingSpeed(-1, -0.1)
+     this.presenting = true
+    }
 
     public update() {
        let y = this.y - this.speedY;
@@ -67,5 +75,13 @@ class Camera {
         GameController.instance.setProgressBar(distance)
 
         scene.centerCameraAt(this.x,this.y );
+
+        if (this.presenting) {
+            console.log(this.y)
+            if (this.y == GameController.instance.getStartPosition()) {
+                this.presenting = false
+                GameController.instance.presentationHasEnded()
+            }
+        }
     }
 }

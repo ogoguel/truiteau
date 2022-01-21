@@ -177,15 +177,9 @@ class Obstacles {
                 y += 1
             }
             let b = GameController.instance.getBorders(Math.floor(y))
-            let x = (b[1] - b[0]) * o.centerRatio + b[0]// + noiseGenerator(idx, this.moveCount / 120) * 2
-
-            if (x < b[0]) {
-                x = b[0]
-            }
-            else if (x > b[1]) {
-                x = b[1]
-            }
-
+            let x = (b[1] - b[0]) * o.centerRatio + b[0]
+            x = Math.clamp(b[0],b[1],x)
+          
             let canMove = true
             for(let other of this.obstacles) {
                 if (other == o || !GameController.instance.isOnScreen(other.sprite) || other.obstacleType == ObstacleType.BONUS) {

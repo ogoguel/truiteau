@@ -89,13 +89,14 @@ class GameController {
                 this.camera.topGamePosition()
                 this.statusBar.show(false)
                 this.player.showPlayer(false);
-                this.weather.setWeather(WeatherFX.NONE);
+                this.weather.setWeather(WeatherFX.CURRENT);
                 this.enemies.showEnemies(false)
                 break
-            case GameState.PRESENTATION:   
-                this.camera.setMovingSpeed(-1,-0.1)
+            case GameState.PRESENTATION:  
+                this.weather.setWeather(WeatherFX.NONE);
                 this.statusBar.setValue(1)
                 this.statusBar.show(true)
+                this.camera.startPresentation()
                 break
             case GameState.READY:
                 this.camera.defaultGamePosition();
@@ -148,14 +149,7 @@ class GameController {
     }
 
     public mainLoop() {
-        // must be first
         this.camera.update();
-
-        if (this.state == GameState.PRESENTATION && this.camera.getCameraTargetLine()==this.getStartPosition())
-        {
-            this.nextState()
-        }
-
         this.terrain.update();
         this.player.update();
         this.weather.update();
@@ -225,6 +219,10 @@ class GameController {
 
     public win() {
         this.setState(GameState.WINNER);
+    }
+
+    public presentationHasEnded() {
+        this.nextState()
     }
 
     public getNoiseGenerator() {

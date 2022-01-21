@@ -120,12 +120,10 @@ class Enemies {
                 o.hidePlayerOnKill = ( o.enemyType == EnemyType.BEAR )
                 return o
             }
-
-            if ( o.enemyType == EnemyType.GUARD && o.sprite.y > (_player.y + _player.height / 2)) {
+            if (o.delta == 0 && o.sprite.y > (_player.y + _player.height / 2)) {
                 this.setImageWithWater(o,true)
                 return null
             }
-  
         }
         return null
     }
@@ -176,7 +174,7 @@ class Enemies {
 
             if (e.enemyType == EnemyType.BEAR) {
                 // bear jumping on player
-                if ( (e.sprite.x - pos[0]) < 40 && (pos[1] - e.sprite.y) < 20  && e.delta < 10 ) {
+                if ( (e.sprite.x - pos[0]) < 40 && pos[1] < e.sprite.y && (e.sprite.y - pos[1] ) < 20  && e.delta < 10 ) {
                     e.delta ++
                     e.sprite.x +=  3 * ((e.enemySide == EnemySide.LEFT)?1:-1)
                     e.sprite.y += 1
